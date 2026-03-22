@@ -19,20 +19,20 @@ from app.constants.data_models import ESPNArticle
 class ESPNScraper:
     def __init__(self):
         self.rss_url = ESPN_RSS_URL
-        
+
     def _get_user_agent(self) -> str:
         return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        
+
     def _get_html(self, url: str) -> str:
         headers = {"User-Agent": self._get_user_agent()}
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         return response.text
-    
+
     def _parse_html(self, html: str) -> BeautifulSoup:
         soup = BeautifulSoup(html, "html.parser")
         return soup
-    
+
     def _get_article_text(self, soup: BeautifulSoup) -> str:
         content_div = soup.find("div", class_="article-body")
         if content_div:
@@ -68,15 +68,14 @@ class ESPNScraper:
             soup = self._parse_html(html)
             text = self._get_article_text(soup)
             content = self._get_article_content(text)
-                
-                
+
             article = ESPNArticle(
                 id=guid,
                 title=title,
                 description=description,
                 url=url,
                 published_date=published_datetime,
-                content=content
+                content=content,
             )
             articles.append(article)
 
