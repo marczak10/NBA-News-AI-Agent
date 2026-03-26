@@ -38,3 +38,14 @@ class YoutubeVideo(Base):
     published_date = Column(DateTime, nullable=False)
     transcript = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    
+class Summary(Base):
+    __tablename__ = 'summaries'
+    
+    id = Column(String(255), primary_key=True)
+    title = Column(String(512), nullable=False)
+    source_id = Column(String(255), nullable=False)
+    source_type = Column(String(50), nullable=False)
+    summary_text = Column(Text, nullable=False)
+    article_created_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)

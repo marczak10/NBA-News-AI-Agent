@@ -27,3 +27,12 @@ class NBAArticle(BaseModel):
     url: str
     published_date: datetime
     content: str
+    
+
+class Summary(BaseModel):
+    id: str
+    title: str
+    source_id: str
+    source_type: str
+    summary_text: str
+    created_at: datetime
