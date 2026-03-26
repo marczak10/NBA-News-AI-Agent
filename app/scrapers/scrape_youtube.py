@@ -2,9 +2,11 @@ from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from pathlib import Path
 import sys
+import os
 import feedparser
 from pydantic import BaseModel
 from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.proxies import WebshareProxyConfig
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
 
 if __package__ is None or __package__ == "":
@@ -12,7 +14,7 @@ if __package__ is None or __package__ == "":
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
 
-from app.constants.user_profile import CHANNEL_LINKS
+from app.constants.links import CHANNEL_LINKS
 
 
 class YoutubeVideo(BaseModel):
@@ -27,7 +29,17 @@ class YoutubeVideo(BaseModel):
 class YoutubeScraper:
     def __init__(self):
         self.channel_links = CHANNEL_LINKS
-        self.transcript_api = YouTubeTranscriptApi()
+        
+        proxy_username = os.getenv("PROXY_USERNAME")
+        proxy_password = os.getenv("PROXY_PASSWORD")
+        
+        if proxy_username and proxy_password:
+            proxy_config = WebshareProxyConfig(
+                proxy_username=proxy_username,
+                proxy_password=proxy_password
+            )
+            
+        self.transcript_api = YouTubeTranscriptApi(proxy_config=proxy_config)
 
     def _get_transcript(self, video_id: str) -> Optional[str]:
         try:
@@ -65,7 +77,7 @@ class YoutubeScraper:
                 published_date = entry["published_parsed"]
                 published_datetime = datetime(*published_date[:6], tzinfo=timezone.utc)
 
-                if published_datetime <= time_cutoff and "/shorts/" in url:
+                if published_datetime <= time_cutoff or "shorts" in url:
                     continue
 
                 transcript = self._get_transcript(video_id)
@@ -81,9 +93,3 @@ class YoutubeScraper:
                 )
 
         return videos
-
-
-if __name__ == "__main__":
-    scraper = YoutubeScraper()
-    videos = scraper.get_videos()
-    print(videos)

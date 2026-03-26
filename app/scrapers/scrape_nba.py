@@ -83,7 +83,6 @@ class NBAScraper:
 
     def _get_article_urls(self, category_url: str) -> List[str]:
         urls: List[str] = []
-        seen: set[str] = set()
 
         candidate_pages = [
             category_url,
@@ -96,9 +95,6 @@ class NBAScraper:
 
             new_urls = 0
             for url in page_urls:
-                if url in seen:
-                    continue
-                seen.add(url)
                 urls.append(url)
                 new_urls += 1
 
@@ -264,7 +260,6 @@ class NBAScraper:
             return ""
 
         blocks: List[str] = []
-        seen: set[str] = set()
         for element in container.select("p, li"):
             if element.find_parent(["aside", "nav", "footer"]):
                 continue
@@ -274,10 +269,9 @@ class NBAScraper:
                 continue
 
             text = self._clean_text(element.get_text(" ", strip=True))
-            if not text or text in seen:
+            if not text:
                 continue
 
-            seen.add(text)
             blocks.append(text)
 
         if blocks:
@@ -322,16 +316,14 @@ class NBAScraper:
 
     def _filter_article_urls(self, candidates: Iterable[Optional[str]]) -> List[str]:
         urls: List[str] = []
-        seen: set[str] = set()
 
         for candidate in candidates:
             normalized = self._normalize_url(candidate)
-            if not normalized or normalized in seen:
+            if not normalized:
                 continue
             if not self._looks_like_article_url(normalized):
                 continue
 
-            seen.add(normalized)
             urls.append(normalized)
 
         return urls
@@ -482,7 +474,6 @@ class NBAScraper:
         time_now = datetime.now(tz=timezone.utc)
         time_cutoff = time_now - timedelta(hours=hours)
         articles: List[NBAArticle] = []
-        seen_ids: set[str] = set()
 
         article_urls = self._get_article_urls(self.news_link)
         for article_url in article_urls:
@@ -493,18 +484,6 @@ class NBAScraper:
             if self._ensure_utc(article.published_date) < time_cutoff:
                 continue
 
-            if article.id in seen_ids:
-                continue
-
-            seen_ids.add(article.id)
             articles.append(article)
 
-        articles.sort(key=lambda article: article.published_date, reverse=True)
         return articles
-
-
-if __name__ == "__main__":
-    scraper = NBAScraper()
-    articles = scraper.get_articles(hours=24)
-    for article in articles:
-        print(article)
