@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
@@ -15,8 +16,10 @@ from app.services.workflow import build_workflow
 def main(initial_state: State | None = None):
     create_tables(engine)
     graph = build_workflow()
-    return graph.invoke(initial_state or {})
+    state = dict(initial_state or {})
+    state.setdefault("start_time", datetime.now(timezone.utc))
+    return graph.invoke(state)
 
 
 if __name__ == "__main__":
-    main(State())
+    main()

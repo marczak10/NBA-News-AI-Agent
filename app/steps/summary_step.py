@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.database.connection import get_session
 from app.database.table_models import (
@@ -12,9 +12,18 @@ from app.agents.summary_agent import SummaryAgent
 from app.steps.base import State
 
 
+def _get_cutoff_reference_time(state: State) -> datetime:
+    start_time = state.get("start_time")
+    if start_time is None:
+        return datetime.utcnow()
+    if start_time.tzinfo is None:
+        return start_time
+    return start_time.astimezone(timezone.utc).replace(tzinfo=None)
+
+
 def summarize(state: State, hours: int = 24) -> dict[str, dict[str, int]]:
     print(f"Starting summarization step for items from the last {hours} hours...")
-    cutoff = datetime.utcnow() - timedelta(hours=hours)
+    cutoff = _get_cutoff_reference_time(state) - timedelta(hours=hours)
     summary_agent = SummaryAgent()
 
     with get_session() as session:

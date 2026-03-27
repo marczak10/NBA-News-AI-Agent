@@ -470,9 +470,19 @@ class NBAScraper:
             return ""
         return re.sub(r"\s+", " ", value).strip()
 
-    def get_articles(self, hours: int = 24) -> List[NBAArticle]:
-        time_now = datetime.now(tz=timezone.utc)
-        time_cutoff = time_now - timedelta(hours=hours)
+    def _get_reference_time(self, reference_time: Optional[datetime]) -> datetime:
+        if reference_time is None:
+            return datetime.now(tz=timezone.utc)
+        if reference_time.tzinfo is None:
+            return reference_time.replace(tzinfo=timezone.utc)
+        return reference_time.astimezone(timezone.utc)
+
+    def get_articles(
+        self,
+        hours: int = 24,
+        reference_time: Optional[datetime] = None,
+    ) -> List[NBAArticle]:
+        time_cutoff = self._get_reference_time(reference_time) - timedelta(hours=hours)
         articles: List[NBAArticle] = []
 
         article_urls = self._get_article_urls(self.news_link)

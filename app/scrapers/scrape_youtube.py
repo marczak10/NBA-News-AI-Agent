@@ -58,9 +58,19 @@ class YoutubeScraper:
         rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
         return rss_url
 
-    def get_videos(self, hours: int = 24) -> List[YoutubeVideo]:
-        time_now = datetime.now(tz=timezone.utc)
-        time_cutoff = time_now - timedelta(hours=hours)
+    def _get_reference_time(self, reference_time: Optional[datetime]) -> datetime:
+        if reference_time is None:
+            return datetime.now(tz=timezone.utc)
+        if reference_time.tzinfo is None:
+            return reference_time.replace(tzinfo=timezone.utc)
+        return reference_time.astimezone(timezone.utc)
+
+    def get_videos(
+        self,
+        hours: int = 24,
+        reference_time: Optional[datetime] = None,
+    ) -> List[YoutubeVideo]:
+        time_cutoff = self._get_reference_time(reference_time) - timedelta(hours=hours)
         videos = []
         for channel_url in self.channel_links:
             rss_url = self._get_rss_url(channel_url)

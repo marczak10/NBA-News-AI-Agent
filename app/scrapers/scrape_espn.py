@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from bs4 import BeautifulSoup
 import feedparser
 import requests
@@ -44,9 +44,19 @@ class ESPNScraper:
             return text.split("Content:", 1)[1].strip()
         return text.strip()
 
-    def get_articles(self, hours: int = 24) -> List[ESPNArticle]:
-        time_now = datetime.now(tz=timezone.utc)
-        time_cutoff = time_now - timedelta(hours=hours)
+    def _get_reference_time(self, reference_time: Optional[datetime]) -> datetime:
+        if reference_time is None:
+            return datetime.now(tz=timezone.utc)
+        if reference_time.tzinfo is None:
+            return reference_time.replace(tzinfo=timezone.utc)
+        return reference_time.astimezone(timezone.utc)
+
+    def get_articles(
+        self,
+        hours: int = 24,
+        reference_time: Optional[datetime] = None,
+    ) -> List[ESPNArticle]:
+        time_cutoff = self._get_reference_time(reference_time) - timedelta(hours=hours)
         articles = []
         feed = feedparser.parse(self.rss_url)
         entries = feed["entries"]

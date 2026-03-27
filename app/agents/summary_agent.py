@@ -21,7 +21,7 @@ class SummaryAgent:
         self.llm = ChatOpenAI(
             model="gpt-5.4-nano",
             api_key=os.getenv("OPENAI_KEY"),
-            temperature=0.2,
+            temperature=0.7,
         )
         
     def _initialize_agent(self):
