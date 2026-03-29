@@ -3,8 +3,10 @@ services:
     name: nba-news-ai-agent-cron
     runtime: python
     plan: starter
-    # Daily at 11:00 UTC. Adjust this cron expression to your preferred run time.
-    schedule: "0 11 * * *"
+    # Render cron schedules use UTC.
+    # 08:00 UTC = 10:00 in Poland during daylight saving time (CEST).
+    # In standard time (CET), 10:00 Poland time would be 09:00 UTC.
+    schedule: "0 8 * * *"
     buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
     startCommand: "python -u -m app.services.main"
     envVars:
