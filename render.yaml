@@ -1,6 +1,6 @@
 databases:
   - name: nba-news-ai-agent-db
-    plan: basic-256mb
+    plan: free
     ipAllowList: []
 
 services:
