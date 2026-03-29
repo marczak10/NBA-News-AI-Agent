@@ -1,0 +1,24 @@
+services:
+  - type: cron
+    name: nba-news-ai-agent-cron
+    runtime: python
+    plan: starter
+    # Daily at 11:00 UTC. Adjust this cron expression to your preferred run time.
+    schedule: "0 11 * * *"
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
+    startCommand: "python -u -m app.services.main"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.5
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_FILE_PATH
+        value: /tmp/nba_news_agent.log
+      - key: OPENAI_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: MY_EMAIL
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
