@@ -1,10 +1,13 @@
-from dotenv import load_dotenv
 import os
 from urllib.parse import quote_plus
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
+from app.services.env_config import load_project_env
 
-load_dotenv()
+load_project_env()
+
+_engine = None
+_session_factory = None
 
 
 def connect_to_db() -> str:
@@ -19,8 +22,20 @@ def connect_to_db() -> str:
     db = os.getenv("SQLSERVER_DB", "nba_news_agent_db")
     return f"mssql+pymssql://{user}:{password}@{host}:{port}/{db}"
 
-engine = create_engine(connect_to_db(), pool_pre_ping=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_engine():
+    global _engine
+    if _engine is None:
+        _engine = create_engine(connect_to_db(), pool_pre_ping=True)
+    return _engine
+
 
 def get_session():
-    return SessionLocal()
+    global _session_factory
+    if _session_factory is None:
+        _session_factory = sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=get_engine(),
+        )
+    return _session_factory()

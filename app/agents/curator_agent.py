@@ -3,20 +3,20 @@ import os
 from datetime import datetime
 from typing import Any
 
-from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ToolStrategy
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
 from app.constants.prompts import CURATOR_AGENT_PROMPT
+from app.services.env_config import load_project_env
 from app.constants.user_profile import USER_PROFILE
 
-load_dotenv()
+load_project_env()
 
 
 class RankedArticle(BaseModel):
-    digest_id: str = Field(description="The ID of the ranked digest")
+    summary_id: str = Field(description="The ID of the ranked article summary")
     relevance_score: float = Field(
         description="Relevance score from 0.0 to 10.0",
         ge=0.0,
@@ -24,12 +24,13 @@ class RankedArticle(BaseModel):
     )
     rank: int = Field(description="Rank position (1 = most relevant)", ge=1)
     reasoning: str = Field(
-        description="Brief explanation of why this digest is ranked here"
+        description="Brief explanation of why this article is ranked here"
     )
+    
 
 
-class RankedDigestList(BaseModel):
-    articles: list[RankedArticle] = Field(description="List of ranked digests")
+class RankedArticleList(BaseModel):
+    articles: list[RankedArticle] = Field(description="List of ranked articles")
 
 
 class CuratorAgent:
@@ -54,7 +55,7 @@ class CuratorAgent:
         agent = create_agent(
             model=self.llm,
             system_prompt=self._inject_user_profile(CURATOR_AGENT_PROMPT),
-            response_format=ToolStrategy(RankedDigestList),
+            response_format=ToolStrategy(RankedArticleList),
         )
         return agent
 
@@ -69,7 +70,7 @@ class CuratorAgent:
         if isinstance(summary, dict):
             return {
                 "id": self._serialize_field(
-                    summary.get("id") or summary.get("digest_id")
+                    summary.get("id") or summary.get("summary_id")
                 ),
                 "title": self._serialize_field(summary.get("title")),
                 "source_id": self._serialize_field(summary.get("source_id")),
@@ -87,42 +88,36 @@ class CuratorAgent:
             "title": self._serialize_field(getattr(summary, "title", None)),
             "source_id": self._serialize_field(getattr(summary, "source_id", None)),
             "source_type": self._serialize_field(getattr(summary, "source_type", None)),
-            "summary": self._serialize_field(
-                getattr(summary, "summary_text", None)
-            ),
+            "summary": self._serialize_field(getattr(summary, "summary_text", None)),
             "article_created_at": self._serialize_field(
                 getattr(summary, "article_created_at", None)
             ),
         }
 
-    def rank_summaries(self, summaries: list[Any]) -> RankedDigestList:
+    def rank_summaries(self, summaries: list[Any]) -> RankedArticleList:
         if not summaries:
-            return RankedDigestList(articles=[])
+            return RankedArticleList(articles=[])
 
         agent = self._initialize_agent()
         serialized_summaries = [
             self._serialize_summary(summary) for summary in summaries
         ]
         user_prompt = f"""
-        Rank these {len(summaries)} NBA news summaries based on the user profile:
+        Rank these {len(summaries)} NBA news article summaries based on the user profile:
         {json.dumps(serialized_summaries, ensure_ascii=True, indent=2)}
         Provide a relevance score (0.0-10.0) and rank (1-{len(summaries)}) for each article, ordered from most to least relevant."""
 
-            
         response = agent.invoke(
             {"messages": [{"role": "user", "content": user_prompt}]}
         )
 
         structured_response = response.get("structured_response")
-        if isinstance(structured_response, RankedDigestList):
-            ranked_digests = structured_response
+        if isinstance(structured_response, RankedArticleList):
+            ranked_summaries = structured_response
         elif structured_response is not None:
-            ranked_digests = RankedDigestList.model_validate(structured_response)
+            ranked_summaries = RankedArticleList.model_validate(structured_response)
         else:
             raise ValueError("Curator agent did not return a structured response.")
 
-        if len(ranked_digests.articles) != len(summaries):
-            raise ValueError("Curator agent did not rank every provided digest.")
-
-        ranked_digests.articles.sort(key=lambda article: article.rank)
-        return ranked_digests
+        ranked_summaries.articles.sort(key=lambda article: article.rank)
+        return ranked_summaries

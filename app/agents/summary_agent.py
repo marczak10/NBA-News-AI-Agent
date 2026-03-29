@@ -1,21 +1,23 @@
 import os
 
 from pydantic import BaseModel, Field
-from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.agents.structured_output import ToolStrategy
 from langchain_openai import ChatOpenAI
 
 from app.constants.prompts import SUMMARY_AGENT_PROMPT
+from app.services.env_config import load_project_env
 
-load_dotenv()
+load_project_env()
 
 
 class SummaryOutput(BaseModel):
     title: str = Field(description="A 5 to 10 word headline for the source item.")
-    summary: str = Field(description="A concise 2 to 3 sentence summary of the source item.")
-    
-    
+    summary: str = Field(
+        description="A concise 2 to 3 sentence summary of the source item."
+    )
+
+
 class SummaryAgent:
     def __init__(self):
         self.llm = ChatOpenAI(
@@ -23,26 +25,25 @@ class SummaryAgent:
             api_key=os.getenv("OPENAI_KEY"),
             temperature=0.7,
         )
-        
+
     def _initialize_agent(self):
         agent = create_agent(
             model=self.llm,
             system_prompt=SUMMARY_AGENT_PROMPT,
             response_format=ToolStrategy(SummaryOutput),
-    
         )
         return agent
-    
-    def summarize_article(self, article_type: str, title: str, content: str) -> SummaryOutput:
+
+    def summarize_article(
+        self, article_type: str, title: str, content: str
+    ) -> SummaryOutput:
         agent = self._initialize_agent()
         prompt = (
             f"Summarize the following NBA {article_type} source.\n\n"
             f"Title: {title}\n\n"
             f"Content:\n{content}"
         )
-        response = agent.invoke(
-            {"messages": [{"role": "user", "content": prompt}]}
-        )
+        response = agent.invoke({"messages": [{"role": "user", "content": prompt}]})
 
         structured_response = response.get("structured_response")
         if isinstance(structured_response, SummaryOutput):

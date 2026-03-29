@@ -9,8 +9,8 @@ class ESPNArticle(BaseModel):
     url: str
     published_date: datetime
     content: str
-    
-    
+
+
 class YoutubeVideo(BaseModel):
     id: str
     title: str
@@ -18,7 +18,7 @@ class YoutubeVideo(BaseModel):
     url: str
     published_date: datetime
     transcript: str | None = None
-    
+
 
 class NBAArticle(BaseModel):
     id: str
@@ -27,7 +27,7 @@ class NBAArticle(BaseModel):
     url: str
     published_date: datetime
     content: str
-    
+
 
 class Summary(BaseModel):
     id: str
@@ -35,4 +35,5 @@ class Summary(BaseModel):
     source_id: str
     source_type: str
     summary_text: str
+    summary_vector: str | None 
     created_at: datetime

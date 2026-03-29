@@ -13,8 +13,8 @@ from app.steps.ingest_step import ingest
 from app.steps.scraper_step import scrape
 from app.steps.summary_step import summarize
 from app.steps.curator_step import curate
-from app.database.connection import engine
-from app.database.create_tables import create_tables
+from app.steps.email_step import email
+
 
 def build_workflow():
     workflow = StateGraph(State)
@@ -22,9 +22,11 @@ def build_workflow():
     workflow.add_node("ingest", ingest)
     workflow.add_node("summarize", summarize)
     workflow.add_node("curate", curate)
+    workflow.add_node("email", email)
     workflow.add_edge(START, "scrape")
     workflow.add_edge("scrape", "ingest")
     workflow.add_edge("ingest", "summarize")
     workflow.add_edge("summarize", "curate")
-    workflow.add_edge("curate", END)
+    workflow.add_edge("curate", "email")
+    workflow.add_edge("email", END)
     return workflow.compile()
