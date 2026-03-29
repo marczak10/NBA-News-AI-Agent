@@ -201,7 +201,7 @@ def curate(state: State) -> State:
             "Keeping %s unique summaries after deduping.",
             len(deduped_summaries),
         )
-        
+
         clustered_ranked_summaries = _cluster_summaries_by_embedding(deduped_summaries)
         logger.info(
             "Keeping %s summaries after clustering by embedding similarity.",
@@ -210,10 +210,10 @@ def curate(state: State) -> State:
 
         ranked_summaries = curator_agent.rank_summaries(clustered_ranked_summaries)
         logger.info("Ranked summaries: %s", ranked_summaries)
-        
+
         top_10_ranked_summaries = _get_top_ranked_summaries(ranked_summaries)
         logger.info("Top 10 ranked summaries: %s", top_10_ranked_summaries)
-        
+
         logger.debug(
             "Got %s ranked summaries from the curator agent.",
             len(ranked_summaries.articles),

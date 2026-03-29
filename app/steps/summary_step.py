@@ -18,6 +18,7 @@ load_project_env()
 
 logger = logging.getLogger(__name__)
 
+
 def _get_cutoff_reference_time(state: State) -> datetime:
     start_time = state.get("start_time")
     if start_time is None:
@@ -62,11 +63,12 @@ def _filter_unsummarized_items(
         item for item in items if (source_type, item.id) not in existing_summary_keys
     ]
 
+
 def _create_embedding(title: str, summary_text: str) -> str | None:
     embedding_model = OpenAIEmbeddings(
-    model="text-embedding-3-small",
-    api_key=os.getenv("OPENAI_KEY"),
-)
+        model="text-embedding-3-small",
+        api_key=os.getenv("OPENAI_KEY"),
+    )
     if not summary_text:
         return None
     combined_text = f"Title: {title}\nSummary: {summary_text}"

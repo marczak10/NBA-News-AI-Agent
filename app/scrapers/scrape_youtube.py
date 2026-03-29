@@ -87,9 +87,7 @@ class YoutubeScraper:
             entries = feed["entries"]
 
             if not entries:
-                logger.warning(
-                    "No YouTube RSS entries were found for %s.", channel_url
-                )
+                logger.warning("No YouTube RSS entries were found for %s.", channel_url)
                 continue
             for entry in entries:
                 video_id = entry["yt_videoid"]

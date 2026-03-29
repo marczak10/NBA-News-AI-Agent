@@ -26,7 +26,6 @@ class RankedArticle(BaseModel):
     reasoning: str = Field(
         description="Brief explanation of why this article is ranked here"
     )
-    
 
 
 class RankedArticleList(BaseModel):

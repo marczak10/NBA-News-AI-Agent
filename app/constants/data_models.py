@@ -35,5 +35,5 @@ class Summary(BaseModel):
     source_id: str
     source_type: str
     summary_text: str
-    summary_vector: str | None 
+    summary_vector: str | None
     created_at: datetime
