@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import json
+import logging
 import re
 import sys
 from pathlib import Path
@@ -18,6 +19,8 @@ if __package__ is None or __package__ == "":
 
 from app.constants.links import NBA_TOP_STORIES_URL
 from app.constants.data_models import NBAArticle
+
+logger = logging.getLogger(__name__)
 
 
 class NBAScraper:
@@ -69,7 +72,8 @@ class NBAScraper:
             response = self.session.get(url, timeout=self.DEFAULT_TIMEOUT)
             response.raise_for_status()
             return response.text
-        except requests.RequestException:
+        except requests.RequestException as exc:
+            logger.warning("Could not fetch NBA content from %s: %s", url, exc)
             return None
 
     def _parse_html(self, html: str) -> BeautifulSoup:
@@ -496,4 +500,9 @@ class NBAScraper:
 
             articles.append(article)
 
+        logger.debug(
+            "Collected %s NBA articles from the last %s hours.",
+            len(articles),
+            hours,
+        )
         return articles

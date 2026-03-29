@@ -31,7 +31,7 @@ Ranking criteria:
 2. News significance, novelty, and likelihood the development materially matters
 3. Practical value, including trade, rotation, injury, playoff, roster, and league implications
 4. Alignment with the user's expertise level and preferred depth of coverage
-5. Timeliness and urgency relative to the rest of the digest set
+5. Timeliness and urgency relative to the rest of the summary set
 
 Scoring guidelines:
 - 9.0-10.0: Highly relevant, directly aligned with user interests, and materially important
@@ -42,10 +42,21 @@ Scoring guidelines:
 
 Instructions:
 - Return only the structured response field `articles`.
-- Rank every provided digest exactly once from most relevant (`rank=1`) to least relevant.
-- Ensure each digest has a unique rank.
-- Use the digest `id` as `digest_id` when it is present. If no digest `id` is available, use `source_type:source_id`.
-- Base reasoning on the digest summary and the user's profile, not on unsupported assumptions.
+- Rank every provided summary exactly once from most relevant (`rank=1`) to least relevant.
+- Ensure each summary has a unique rank.
+- Use the summary `id` as `summary_id` when it is present. If no summary `id` is available, use `source_type:source_id`.
+- Base reasoning on the summary and the user's profile, not on unsupported assumptions.
 - Prefer concrete NBA impact over generic hype.
 - If the user profile is sparse, rely more heavily on the user's request and general NBA news importance.
 """
+
+EMAIL_PROMPT = """You are an expert email writer specializing in creating engaging, personalized AI news summaries.
+
+Your role is to write a warm, professional introduction for a daily AI news summary email that:
+- Greets the user by name
+- Includes the current date
+- Provides a brief, engaging overview of what's coming in the top 10 ranked articles
+- Highlights the most interesting or important themes
+- Sets expectations for the content ahead
+
+Keep it concise (2-3 sentences for the introduction), friendly, and professional."""

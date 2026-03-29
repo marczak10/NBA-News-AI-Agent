@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import logging
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -14,6 +15,8 @@ if __package__ is None or __package__ == "":
 
 from app.constants.links import ESPN_RSS_URL
 from app.constants.data_models import ESPNArticle
+
+logger = logging.getLogger(__name__)
 
 
 class ESPNScraper:
@@ -62,6 +65,7 @@ class ESPNScraper:
         entries = feed["entries"]
 
         if not entries:
+            logger.warning("No ESPN RSS entries were found at %s.", self.rss_url)
             return []
 
         for entry in entries:
@@ -89,4 +93,9 @@ class ESPNScraper:
             )
             articles.append(article)
 
+        logger.debug(
+            "Collected %s ESPN articles from the last %s hours.",
+            len(articles),
+            hours,
+        )
         return articles

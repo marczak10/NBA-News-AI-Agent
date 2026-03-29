@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import logging
 from typing import List, Optional
 from pathlib import Path
 import sys
@@ -16,6 +17,8 @@ if __package__ is None or __package__ == "":
 
 from app.constants.links import CHANNEL_LINKS
 
+logger = logging.getLogger(__name__)
+
 
 class YoutubeVideo(BaseModel):
     id: str
@@ -29,16 +32,16 @@ class YoutubeVideo(BaseModel):
 class YoutubeScraper:
     def __init__(self):
         self.channel_links = CHANNEL_LINKS
-        
+        proxy_config = None
+
         proxy_username = os.getenv("PROXY_USERNAME")
         proxy_password = os.getenv("PROXY_PASSWORD")
-        
+
         if proxy_username and proxy_password:
             proxy_config = WebshareProxyConfig(
-                proxy_username=proxy_username,
-                proxy_password=proxy_password
+                proxy_username=proxy_username, proxy_password=proxy_password
             )
-            
+
         self.transcript_api = YouTubeTranscriptApi(proxy_config=proxy_config)
 
     def _get_transcript(self, video_id: str) -> Optional[str]:
@@ -49,8 +52,14 @@ class YoutubeScraper:
             )
             return transcript
         except (TranscriptsDisabled, NoTranscriptFound):
+            logger.debug("No transcript found for YouTube video %s.", video_id)
             return None
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "Could not fetch transcript for YouTube video %s: %s",
+                video_id,
+                exc,
+            )
             return None
 
     def _get_rss_url(self, channel_url: str) -> str:
@@ -78,6 +87,9 @@ class YoutubeScraper:
             entries = feed["entries"]
 
             if not entries:
+                logger.warning(
+                    "No YouTube RSS entries were found for %s.", channel_url
+                )
                 continue
             for entry in entries:
                 video_id = entry["yt_videoid"]
@@ -102,4 +114,9 @@ class YoutubeScraper:
                     )
                 )
 
+        logger.debug(
+            "Collected %s YouTube videos from the last %s hours.",
+            len(videos),
+            hours,
+        )
         return videos

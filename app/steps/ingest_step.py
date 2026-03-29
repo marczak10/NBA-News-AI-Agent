@@ -1,12 +1,8 @@
+import logging
+import time
 from typing import Any
 
 from sqlalchemy.orm import Session
-
-from app.constants.data_models import (
-    ESPNArticle as ESPNArticleData,
-    NBAArticle as NBAArticleData,
-    YoutubeVideo as YoutubeVideoData,
-)
 from app.database.connection import get_session
 from app.database.table_models import (
     ESPNArticle as ESPNArticleRecord,
@@ -14,6 +10,8 @@ from app.database.table_models import (
     YoutubeVideo as YoutubeVideoRecord,
 )
 from app.steps.base import State
+
+logger = logging.getLogger(__name__)
 
 
 def _upsert_records(
@@ -48,16 +46,44 @@ def _upsert_records(
 
 
 def ingest(state: State) -> dict[str, dict[str, dict[str, int]]]:
-    print("Starting ingestion step...")
     nba_articles = state.get("nba_articles", [])
     espn_articles = state.get("espn_articles", [])
     youtube_videos = state.get("youtube_videos", [])
+    logger.info(
+        "Starting ingest step. NBA: %s, ESPN: %s, YouTube: %s.",
+        len(nba_articles),
+        len(espn_articles),
+        len(youtube_videos),
+    )
+    ingest_start_time = time.time()
 
     with get_session() as session:
         summary = {
-            "nba_articles": _upsert_records(session, nba_articles, NBAArticleRecord, ("title", "description", "url", "published_date", "content")),
-            "espn_articles": _upsert_records(session, espn_articles, ESPNArticleRecord, ("title", "description", "url", "published_date", "content")),
-            "youtube_videos": _upsert_records(session, youtube_videos, YoutubeVideoRecord, ("title", "description", "url", "published_date", "transcript")),
+            "nba_articles": _upsert_records(
+                session,
+                nba_articles,
+                NBAArticleRecord,
+                ("title", "description", "url", "published_date", "content"),
+            ),
+            "espn_articles": _upsert_records(
+                session,
+                espn_articles,
+                ESPNArticleRecord,
+                ("title", "description", "url", "published_date", "content"),
+            ),
+            "youtube_videos": _upsert_records(
+                session,
+                youtube_videos,
+                YoutubeVideoRecord,
+                ("title", "description", "url", "published_date", "transcript"),
+            ),
         }
-        print(f"Ingestion summary: {summary}")
+
+    ingest_end_time = time.time()
+    logger.info(
+        "Finished ingest step in %.2f seconds. Summary: %s",
+        ingest_end_time - ingest_start_time,
+        summary,
+    )
+
     return {"ingest_summary": summary}
