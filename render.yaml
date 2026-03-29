@@ -1,3 +1,8 @@
+databases:
+  - name: nba-news-ai-agent-db
+    plan: basic-256mb
+    ipAllowList: []
+
 services:
   - type: cron
     name: nba-news-ai-agent-cron
@@ -19,7 +24,9 @@ services:
       - key: OPENAI_KEY
         sync: false
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: nba-news-ai-agent-db
+          property: connectionString
       - key: MY_EMAIL
         sync: false
       - key: APP_PASSWORD
