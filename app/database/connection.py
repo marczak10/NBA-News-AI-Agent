@@ -11,10 +11,6 @@ _session_factory = None
 
 
 def connect_to_db() -> str:
-    database_url = os.getenv("DATABASE_URL")
-    if database_url:
-        return database_url
-
     user = os.getenv("SQLSERVER_USER", "sa")
     password = quote_plus(os.getenv("SQLSERVER_PASSWORD", "YourStrong!Passw0rd"))
     host = os.getenv("SQLSERVER_HOST", "localhost")
