@@ -12,7 +12,11 @@ _session_factory = None
 
 def _normalize_database_url(database_url: str) -> str:
     if database_url.startswith("postgres://"):
-        return database_url.replace("postgres://", "postgresql://", 1)
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    if database_url.startswith("postgresql+psycopg2://"):
+        return database_url.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
+    if database_url.startswith("postgresql://"):
+        return database_url.replace("postgresql://", "postgresql+psycopg://", 1)
     return database_url
 
 
@@ -28,7 +32,7 @@ def connect_to_db() -> str:
     host = os.getenv("POSTGRES_HOST", os.getenv("PGHOST", "localhost"))
     port = os.getenv("POSTGRES_PORT", os.getenv("PGPORT", "5432"))
     db = os.getenv("POSTGRES_DB", os.getenv("PGDATABASE", "nba_news_agent_db"))
-    return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
+    return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db}"
 
 
 def get_engine():
