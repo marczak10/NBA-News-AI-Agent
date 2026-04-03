@@ -266,15 +266,6 @@ Optional local database variables:
 - `POSTGRES_HOST`
 - `POSTGRES_PORT`
 
-Optional extras:
-
-- `LOG_LEVEL`
-- `LOG_FILE_PATH`
-- `PROXY_USERNAME`
-- `PROXY_PASSWORD`
-
-If `DATABASE_URL` is missing, the app uses the local `POSTGRES_*` settings instead.
-
 ---
 
 ## ☁️ Deployment
